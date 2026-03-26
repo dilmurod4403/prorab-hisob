@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Prorab {
+  id              Int      @id @default(autoincrement())
+  telegramId      BigInt   @unique @map("telegram_id")
+  fullName        String   @map("full_name") @db.VarChar(200)
+  phone           String?  @db.VarChar(20)
+  advanceLimitPct Int      @default(80) @map("advance_limit_pct")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  employees   Employee[]
+  objects     Object[]
+  transactions Transaction[]
+  monthCloses MonthClose[]
+
+  @@map("prorab")
+}
+
+model Employee {
+  id            Int      @id @default(autoincrement())
+  prorabId      Int      @map("prorab_id")
+  fullName      String   @map("full_name") @db.VarChar(200)
+  position      String   @db.VarChar(100)
+  phone         String?  @db.VarChar(20)
+  monthlySalary BigInt   @map("monthly_salary")
+  status        String   @default("active") @db.VarChar(20)
+  hiredDate     DateTime @map("hired_date") @db.Date
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  prorab          Prorab           @relation(fields: [prorabId], references: [id])
+  employeeObjects EmployeeObject[]
+  attendances     Attendance[]
+  transactions    Transaction[]
+
+  @@index([prorabId, status])
+  @@map("employee")
+}
+
+model Object {
+  id             Int       @id @default(autoincrement())
+  prorabId       Int       @map("prorab_id")
+  name           String    @db.VarChar(300)
+  address        String?   @db.VarChar(500)
+  clientName     String    @map("client_name") @db.VarChar(200)
+  contractAmount BigInt    @map("contract_amount")
+  startDate      DateTime  @map("start_date") @db.Date
+  endDate        DateTime? @map("end_date") @db.Date
+  status         String    @default("active") @db.VarChar(20)
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  prorab          Prorab           @relation(fields: [prorabId], references: [id])
+  employeeObjects EmployeeObject[]
+  attendances     Attendance[]
+  transactions    Transaction[]
+
+  @@index([prorabId, status])
+  @@map("object")
+}
+
+model EmployeeObject {
+  id           Int      @id @default(autoincrement())
+  employeeId   Int      @map("employee_id")
+  objectId     Int      @map("object_id")
+  workPercent  Int      @default(100) @map("work_percent")
+  assignedDate DateTime @default(now()) @map("assigned_date") @db.Date
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  object   Object   @relation(fields: [objectId], references: [id])
+
+  @@map("employee_object")
+}
+
+model Attendance {
+  id         Int      @id @default(autoincrement())
+  employeeId Int      @map("employee_id")
+  workDate   DateTime @map("work_date") @db.Date
+  status     String   @db.VarChar(20) // full, half, absent_reason, absent
+  note       String?
+  objectId   Int?     @map("object_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  object   Object?  @relation(fields: [objectId], references: [id])
+
+  @@unique([employeeId, workDate])
+  @@map("attendance")
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  prorabId    Int      @map("prorab_id")
+  employeeId  Int?     @map("employee_id")
+  objectId    Int?     @map("object_id")
+  type        String   @db.VarChar(30) // salary, advance, bonus, expense, payment
+  amount      BigInt
+  description String?
+  txDate      DateTime @map("tx_date") @db.Date
+  monthYear   String   @map("month_year") @db.VarChar(7) // 2026-03
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  prorab   Prorab    @relation(fields: [prorabId], references: [id])
+  employee Employee? @relation(fields: [employeeId], references: [id])
+  object   Object?   @relation(fields: [objectId], references: [id])
+
+  @@index([prorabId, monthYear, type])
+  @@index([employeeId, monthYear])
+  @@index([objectId, type])
+  @@map("transaction")
+}
+
+model MonthClose {
+  id           Int      @id @default(autoincrement())
+  prorabId     Int      @map("prorab_id")
+  monthYear    String   @map("month_year") @db.VarChar(7)
+  closedAt     DateTime @default(now()) @map("closed_at")
+  totalSalary  BigInt   @map("total_salary")
+  totalBonus   BigInt   @map("total_bonus")
+  totalAdvance BigInt   @map("total_advance")
+  totalExpense BigInt   @map("total_expense")
+
+  prorab Prorab @relation(fields: [prorabId], references: [id])
+
+  @@unique([prorabId, monthYear])
+  @@map("month_close")
+}

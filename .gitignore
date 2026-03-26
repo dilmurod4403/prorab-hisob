@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.env
+*.js
+*.d.ts
+*.js.map
+!jest.config.js
+!vitest.config.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage/
+
+# Prisma
+prisma/*.db
