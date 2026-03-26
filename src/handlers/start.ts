@@ -20,7 +20,7 @@ export async function startHandler(ctx: CommandContext<Context>): Promise<void> 
   });
 
   if (!prorab) {
-    const fullName = [ctx.from.first_name, ctx.from.last_name]
+    const fullName = [ctx.from!.first_name, ctx.from!.last_name]
       .filter(Boolean)
       .join(" ");
 
@@ -33,10 +33,10 @@ export async function startHandler(ctx: CommandContext<Context>): Promise<void> 
 
     await ctx.reply(
       `Assalomu alaykum, ${prorab.fullName}! 👋\n\n` +
-        `*Prorab Hisob\\-Kitob* botiga xush kelibsiz\\!\n\n` +
+        `<b>Prorab Hisob-Kitob</b> botiga xush kelibsiz!\n\n` +
         `Bu bot sizga xodimlar maoshi, davomat va ob'ekt ` +
-        `hisob\\-kitobini boshqarishda yordam beradi\\.`,
-      { parse_mode: "MarkdownV2", reply_markup: mainMenu }
+        `hisob-kitobini boshqarishda yordam beradi.`,
+      { parse_mode: "HTML", reply_markup: mainMenu }
     );
   } else {
     await ctx.reply(`Salom, ${prorab.fullName}! Asosiy menyu:`, {

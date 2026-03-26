@@ -6,30 +6,68 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Prorab Hisob-Kitob** — a Telegram bot for construction foremen (prorab) in Uzbekistan to manage employee salaries, bonuses, advances, attendance, and construction object finances. The interface language is Uzbek.
 
-## Planned Tech Stack (from TZ v1.0)
+## Tech Stack
 
-- **Language:** Python 3.11+
-- **Bot framework:** python-telegram-bot 20.x (async)
+- **Language:** TypeScript + Node.js 20+
+- **Bot framework:** grammy 1.x
 - **Database:** PostgreSQL 15+
-- **ORM:** SQLAlchemy 2.0+ (async)
-- **Migrations:** Alembic
-- **Cache/session:** Redis
-- **Reports:** openpyxl (Excel), reportlab (PDF)
-- **Scheduler:** APScheduler
-- **Deployment:** Docker + Docker Compose, Ubuntu 22.04 LTS
-- **CI/CD:** GitHub Actions
+- **ORM:** Prisma 5.x
+- **Cache/session:** Redis (ioredis)
+- **Deployment:** Docker + Docker Compose
+- **Testing:** vitest
+
+## Commands
+
+```bash
+npm run dev          # Start bot in dev mode (tsx watch)
+npm run build        # TypeScript compile
+npm start            # Run compiled bot
+npm test             # Run all tests
+npm run test:watch   # Watch mode tests
+npx prisma generate  # Generate Prisma client after schema changes
+npx prisma migrate dev  # Create and apply migration
+npx prisma db push   # Push schema to DB without migration
+npx prisma studio    # Visual DB editor
+npx tsc --noEmit     # Type check without build
+```
+
+**Proxy note:** This dev environment uses a corporate proxy. If npm install fails, use:
+```bash
+npm install --proxy="" --https-proxy=""
+```
 
 ## Architecture
 
-The system has these layers:
-1. **Telegram Bot (frontend)** — inline keyboard UI, conversation handlers
-2. **Bot Server (backend)** — Python app with handlers, services, and report generation
-3. **PostgreSQL** — main database (prorab, employee, object, attendance, finance tables)
-4. **Redis** — session management, conversation state, caching
-5. **Scheduler** — reminders and automated tasks
-6. **File Generator** — PDF/Excel report generation
+```
+src/
+├── index.ts          # Entry point: connects DB/Redis, starts bot
+├── bot.ts            # Bot instance, registers handlers
+├── config.ts         # Environment config (dotenv + validation)
+├── db.ts             # Prisma client instance
+├── redis.ts          # ioredis client instance
+├── handlers/         # Telegram command/callback handlers
+│   └── start.ts      # /start — registration and main menu
+├── services/         # Business logic (salary calc, advance check, etc.)
+├── reports/          # PDF/Excel report generation
+└── utils/
+    ├── keyboards.ts  # Inline keyboard builders
+    └── formatters.ts # Amount formatting (1234567 → "1 234 567 so'm")
+```
 
-All components run inside Docker Compose.
+**Data flow:** User → grammy handler → Prisma (PostgreSQL) → response with InlineKeyboard
+
+## Database (Prisma)
+
+Schema: `prisma/schema.prisma` — 7 models:
+- **Prorab** — bot user (telegram_id unique)
+- **Employee** — worker with monthly salary
+- **Object** — construction site with contract amount
+- **EmployeeObject** — many-to-many with work_percent
+- **Attendance** — daily: full/half/absent (unique per employee+date)
+- **Transaction** — salary/advance/bonus/expense/payment
+- **MonthClose** — monthly finalization (immutable after close)
+
+All monetary values are `BigInt`. Field mapping uses `@map()` for snake_case DB columns.
 
 ## Key Domain Concepts
 
@@ -44,5 +82,5 @@ All components run inside Docker Compose.
 
 All specifications are in `docs/` (Uzbek language, `.docx` format):
 - `BT_Prorab_Hisob_Kitob_v2.0.docx` — Business requirements
-- `TZ_Prorab_Hisob_Kitob_v1.0.docx` — Technical specification (DB schema, API, bot commands)
+- `TZ_Prorab_Hisob_Kitob_v1.0.docx` — Technical specification (DB schema, bot commands)
 - `Ilova_UI_Arxitektura.docx` — UI mockups and system architecture diagrams
