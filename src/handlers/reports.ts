@@ -1,5 +1,5 @@
 import { CommandContext, Context, CallbackQueryContext } from "grammy";
-import { getProrab } from "../utils/prorab";
+import { requireProrab } from "../utils/prorab";
 import { formatMoney } from "../utils/formatters";
 import {
   reportsMenuKeyboard,
@@ -18,16 +18,6 @@ import {
 import { getMonthlyStats } from "../services/attendance.service";
 
 // ─── Helpers ───
-
-async function requireProrab(ctx: Context) {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return null;
-  const prorab = await getProrab(telegramId);
-  if (!prorab) {
-    await ctx.reply("Avval /start buyrug'ini yuboring.");
-  }
-  return prorab;
-}
 
 const PAGE_SIZE = 8;
 

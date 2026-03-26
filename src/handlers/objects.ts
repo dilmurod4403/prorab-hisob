@@ -4,8 +4,8 @@ import {
   CallbackQueryContext,
   NextFunction,
 } from "grammy";
-import { getProrab } from "../utils/prorab";
-import { formatMoney } from "../utils/formatters";
+import { requireProrab, getProrab } from "../utils/prorab";
+import { formatMoney, MAX_NAME_LENGTH, MAX_TEXT_LENGTH, MAX_AMOUNT } from "../utils/formatters";
 import {
   objectListKeyboard,
   objectDetailKeyboard,
@@ -28,16 +28,6 @@ import {
 } from "../types/conversation";
 
 // ─── Helpers ───
-
-async function requireProrab(ctx: Context) {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return null;
-  const prorab = await getProrab(telegramId);
-  if (!prorab) {
-    await ctx.reply("Avval /start buyrug'ini yuboring.");
-  }
-  return prorab;
-}
 
 function formatDate(date: Date): string {
   const d = new Date(date);
@@ -243,8 +233,8 @@ async function handleNameStep(
   telegramId: number,
   text: string
 ): Promise<void> {
-  if (text.length < 2) {
-    await ctx.reply("❌ Nom kamida 2 ta belgidan iborat bo'lishi kerak:");
+  if (text.length < 2 || text.length > MAX_NAME_LENGTH) {
+    await ctx.reply(`❌ Nom 2 dan ${MAX_NAME_LENGTH} gacha belgi bo'lishi kerak:`);
     return;
   }
   conv.data.name = text;
@@ -259,8 +249,8 @@ async function handleClientStep(
   telegramId: number,
   text: string
 ): Promise<void> {
-  if (text.length < 2) {
-    await ctx.reply("❌ Ism kamida 2 ta belgidan iborat bo'lishi kerak:");
+  if (text.length < 2 || text.length > MAX_NAME_LENGTH) {
+    await ctx.reply(`❌ Ism 2 dan ${MAX_NAME_LENGTH} gacha belgi bo'lishi kerak:`);
     return;
   }
   conv.data.clientName = text;
@@ -278,7 +268,7 @@ async function handleAmountStep(
   const cleaned = text.replace(/[\s,._]/g, "");
   const amount = parseInt(cleaned, 10);
 
-  if (isNaN(amount) || amount <= 0) {
+  if (isNaN(amount) || amount <= 0 || amount > MAX_AMOUNT) {
     await ctx.reply("❌ Noto'g'ri summa. Faqat raqam kiriting:");
     return;
   }
@@ -298,6 +288,10 @@ async function handleAddressStep(
   telegramId: number,
   text: string
 ): Promise<void> {
+  if (text.length > MAX_TEXT_LENGTH) {
+    await ctx.reply(`❌ Manzil ${MAX_TEXT_LENGTH} belgidan oshmasligi kerak:`);
+    return;
+  }
   conv.data.address = text;
   conv.step = "confirm";
   await setConversation(telegramId, conv);

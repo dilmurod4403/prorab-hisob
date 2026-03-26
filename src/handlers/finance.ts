@@ -4,8 +4,8 @@ import {
   CallbackQueryContext,
   NextFunction,
 } from "grammy";
-import { getProrab } from "../utils/prorab";
-import { formatMoney } from "../utils/formatters";
+import { requireProrab, getProrab } from "../utils/prorab";
+import { formatMoney, MAX_AMOUNT, MAX_TEXT_LENGTH } from "../utils/formatters";
 import {
   financeMenuKeyboard,
   employeeSelectKeyboard,
@@ -33,16 +33,6 @@ import {
 import { prisma } from "../db";
 
 // ─── Helpers ───
-
-async function requireProrab(ctx: Context) {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return null;
-  const prorab = await getProrab(telegramId);
-  if (!prorab) {
-    await ctx.reply("Avval /start buyrug'ini yuboring.");
-  }
-  return prorab;
-}
 
 const TX_TYPE_LABELS: Record<string, string> = {
   advance: "💸 Avans",
@@ -475,7 +465,7 @@ async function handleAmountStep(
   const cleaned = text.replace(/[\s,._]/g, "");
   const amount = parseInt(cleaned, 10);
 
-  if (isNaN(amount) || amount <= 0) {
+  if (isNaN(amount) || amount <= 0 || amount > MAX_AMOUNT) {
     await ctx.reply("❌ Noto'g'ri summa. Faqat raqam kiriting (masalan: 500000):");
     return;
   }
@@ -573,6 +563,11 @@ async function handleDescriptionStep(
   text: string,
   prorabId: number
 ): Promise<void> {
+  if (text.length > MAX_TEXT_LENGTH) {
+    await ctx.reply(`❌ Matn ${MAX_TEXT_LENGTH} belgidan oshmasligi kerak:`);
+    return;
+  }
+
   if (conv.data.type === "bonus" && text.length < 2) {
     await ctx.reply("❌ Sabab kamida 2 ta belgidan iborat bo'lishi kerak:");
     return;

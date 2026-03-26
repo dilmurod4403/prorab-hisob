@@ -4,7 +4,7 @@ import {
   CallbackQueryContext,
   NextFunction,
 } from "grammy";
-import { getProrab } from "../utils/prorab";
+import { requireProrab, getProrab } from "../utils/prorab";
 import {
   attendanceMenuKeyboard,
   attendanceDayKeyboard,
@@ -31,16 +31,6 @@ import {
 } from "../types/conversation";
 
 // ─── Helpers ───
-
-async function requireProrab(ctx: Context) {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return null;
-  const prorab = await getProrab(telegramId);
-  if (!prorab) {
-    await ctx.reply("Avval /start buyrug'ini yuboring.");
-  }
-  return prorab;
-}
 
 const PAGE_SIZE = 8;
 

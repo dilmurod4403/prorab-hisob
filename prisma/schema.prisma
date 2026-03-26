@@ -13,6 +13,7 @@ model Prorab {
   fullName        String   @map("full_name") @db.VarChar(200)
   phone           String?  @db.VarChar(20)
   advanceLimitPct Int      @default(80) @map("advance_limit_pct")
+  approved        Boolean  @default(false)
   createdAt       DateTime @default(now()) @map("created_at")
 
   employees   Employee[]

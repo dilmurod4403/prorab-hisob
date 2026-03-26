@@ -13,3 +13,19 @@ export function formatAmount(amount: number | bigint): string {
 export function formatMoney(amount: number | bigint): string {
   return `${formatAmount(amount)} so'm`;
 }
+
+/**
+ * Escape HTML special characters for Telegram parse_mode: "HTML"
+ */
+export function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+// ─── Input validation constants ───
+
+export const MAX_TEXT_LENGTH = 500;
+export const MAX_NAME_LENGTH = 200;
+export const MAX_AMOUNT = 100_000_000_000; // 100 mlrd so'm

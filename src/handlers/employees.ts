@@ -1,6 +1,6 @@
 import { CommandContext, Context, CallbackQueryContext, NextFunction } from "grammy";
-import { getProrab } from "../utils/prorab";
-import { formatMoney } from "../utils/formatters";
+import { requireProrab, getProrab } from "../utils/prorab";
+import { formatMoney, MAX_NAME_LENGTH, MAX_AMOUNT } from "../utils/formatters";
 import {
   employeeListKeyboard,
   employeeDetailKeyboard,
@@ -24,16 +24,6 @@ import {
 } from "../types/conversation";
 
 // ─── Helpers ───
-
-async function requireProrab(ctx: Context) {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return null;
-  const prorab = await getProrab(telegramId);
-  if (!prorab) {
-    await ctx.reply("Avval /start buyrug'ini yuboring.");
-  }
-  return prorab;
-}
 
 function formatDate(date: Date): string {
   const d = new Date(date);
@@ -248,8 +238,8 @@ async function handleNameStep(
   telegramId: number,
   text: string
 ): Promise<void> {
-  if (text.length < 2) {
-    await ctx.reply("❌ Ism kamida 2 ta belgidan iborat bo'lishi kerak. Qaytadan kiriting:");
+  if (text.length < 2 || text.length > MAX_NAME_LENGTH) {
+    await ctx.reply(`❌ Ism 2 dan ${MAX_NAME_LENGTH} gacha belgi bo'lishi kerak:`);
     return;
   }
   conv.data.fullName = text;
@@ -291,7 +281,7 @@ async function handleSalaryStep(
   const cleaned = text.replace(/[\s,._]/g, "");
   const salary = parseInt(cleaned, 10);
 
-  if (isNaN(salary) || salary <= 0) {
+  if (isNaN(salary) || salary <= 0 || salary > MAX_AMOUNT) {
     await ctx.reply("❌ Noto'g'ri summa. Faqat raqam kiriting (masalan: 5000000):");
     return;
   }

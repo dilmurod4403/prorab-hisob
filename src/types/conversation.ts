@@ -44,6 +44,14 @@ export interface SettingsFormData {
   newLimitPct?: number;
 }
 
+// ─── Admin form ───
+
+export interface AdminFormData {
+  telegramId?: string;
+  fullName?: string;
+  phone?: string | null;
+}
+
 // ─── Union state ───
 
 export type ConversationState =
@@ -71,6 +79,11 @@ export type ConversationState =
       module: "settings";
       step: "new_limit";
       data: SettingsFormData;
+    }
+  | {
+      module: "admin";
+      step: "telegram_id" | "name" | "phone" | "confirm";
+      data: AdminFormData;
     };
 
 // ─── Redis helpers ───
