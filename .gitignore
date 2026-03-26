@@ -21,3 +21,6 @@ coverage/
 
 # Prisma
 prisma/*.db
+
+# Redis
+dump.rdb
