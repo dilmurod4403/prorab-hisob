@@ -6,7 +6,7 @@ echo "DB migratsiya qilinmoqda..."
 # DB tayyor bo'lguncha kutish (max 30 sekund)
 MAX_RETRIES=10
 RETRY=0
-until npx prisma db push --skip-generate 2>/dev/null || [ $RETRY -eq $MAX_RETRIES ]; do
+until npx prisma db push --skip-generate || [ $RETRY -eq $MAX_RETRIES ]; do
   RETRY=$((RETRY + 1))
   echo "DB tayyor emas, ${RETRY}/${MAX_RETRIES} kutilmoqda..."
   sleep 3
