@@ -25,4 +25,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/index.js"]
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
+
+CMD ["./entrypoint.sh"]

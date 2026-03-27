@@ -153,5 +153,8 @@ bot.callbackQuery("noop", async (ctx) => {
   await ctx.answerCallbackQuery();
 });
 
+// ─── Contact handler (for phone number input) ───
+bot.on("message:contact", adminTextHandler);
+
 // ─── Text handlers (FSM) — must be last ───
 bot.on("message:text", adminTextHandler, employeesTextHandler, financeTextHandler, objectsTextHandler, attendanceTextHandler, settingsTextHandler);
