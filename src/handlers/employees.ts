@@ -209,7 +209,7 @@ export async function employeesTextHandler(
   const conv = await getConversation(telegramId);
   if (!conv || conv.module !== "employee") return next();
 
-  const text = ctx.message?.text?.trim();
+  const text = ctx.message?.text?.trim() ?? ctx.message?.contact?.phone_number;
   if (!text) return next();
 
   const prorab = await getProrab(telegramId);

@@ -260,7 +260,7 @@ export async function adminTextHandler(
   const conv = await getConversation(telegramId);
   if (!conv || conv.module !== "admin") return next();
 
-  const text = ctx.message?.text?.trim();
+  const text = ctx.message?.text?.trim() ?? ctx.message?.contact?.phone_number;
   if (!text) return next();
 
   switch (conv.step) {
