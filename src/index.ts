@@ -6,6 +6,12 @@ async function main(): Promise<void> {
   await connectDb();
 
   console.log("Bot ishga tushmoqda...");
+
+  await bot.api.setMyCommands([
+    { command: "start", description: "Botni ishga tushirish" },
+    { command: "menu", description: "Asosiy menyu" },
+  ]);
+
   bot.start({
     onStart: (botInfo) => {
       console.log(`Bot @${botInfo.username} ishga tushdi`);
