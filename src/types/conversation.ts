@@ -99,7 +99,12 @@ export async function getConversation(
 ): Promise<ConversationState | null> {
   const raw = await redis.get(convKey(telegramId));
   if (!raw) return null;
-  return JSON.parse(raw) as ConversationState;
+  try {
+    return JSON.parse(raw) as ConversationState;
+  } catch {
+    await redis.del(convKey(telegramId));
+    return null;
+  }
 }
 
 export async function setConversation(

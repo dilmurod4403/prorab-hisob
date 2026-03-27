@@ -157,8 +157,9 @@ export async function getMonthlyStats(
 // ─── Helpers ───
 
 export function todayDate(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const tz = process.env.TIMEZONE || "Asia/Tashkent";
+  const tzNow = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+  return new Date(tzNow.getFullYear(), tzNow.getMonth(), tzNow.getDate());
 }
 
 export function parseDate(text: string): Date | null {
@@ -197,8 +198,9 @@ export function dateToString(date: Date): string {
 }
 
 export function currentMonthYear(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const tz = process.env.TIMEZONE || "Asia/Tashkent";
+  const tzNow = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+  const year = tzNow.getFullYear();
+  const month = String(tzNow.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
 }

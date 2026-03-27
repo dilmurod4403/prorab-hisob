@@ -139,35 +139,41 @@ export async function settingsCallback(
       return;
     }
 
-    // Har bir faol xodimga oylik (salary) tranzaksiyasi yaratish
+    // Atomic: salary tranzaksiyalari + monthClose bir vaqtda
     const employees = await prisma.employee.findMany({
       where: { prorabId: prorab.id, status: "active" },
     });
 
-    let totalSalary = BigInt(0);
-    for (const emp of employees) {
-      await createTransaction({
-        prorabId: prorab.id,
-        employeeId: emp.id,
-        type: "salary",
-        amount: emp.monthlySalary,
-        description: `${monthLabel(monthYear)} oyligi`,
-      });
-      totalSalary += emp.monthlySalary;
-    }
-
     const summary = await getMonthSummary(prorab.id, monthYear);
+    let totalSalary = BigInt(0);
+    for (const emp of employees) totalSalary += emp.monthlySalary;
 
-    await prisma.monthClose.create({
-      data: {
-        prorabId: prorab.id,
-        monthYear,
-        totalSalary,
-        totalBonus: summary.totalBonus,
-        totalAdvance: summary.totalAdvance,
-        totalExpense: summary.totalExpense,
-      },
-    });
+    const txDate = new Date();
+    await prisma.$transaction([
+      ...employees.map((emp) =>
+        prisma.transaction.create({
+          data: {
+            prorabId: prorab.id,
+            employeeId: emp.id,
+            type: "salary",
+            amount: emp.monthlySalary,
+            description: `${monthLabel(monthYear)} oyligi`,
+            txDate,
+            monthYear,
+          },
+        })
+      ),
+      prisma.monthClose.create({
+        data: {
+          prorabId: prorab.id,
+          monthYear,
+          totalSalary,
+          totalBonus: summary.totalBonus,
+          totalAdvance: summary.totalAdvance,
+          totalExpense: summary.totalExpense,
+        },
+      }),
+    ]);
 
     await ctx.editMessageText(
       `✅ ${monthLabel(monthYear)} muvaffaqiyatli yopildi!\n\n` +
